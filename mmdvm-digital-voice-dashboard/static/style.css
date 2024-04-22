@@ -1,0 +1,447 @@
+
+:root {
+  --color-accent: #00bef3;
+  --content-padding: 2rem;
+  --color-table: #ececec;
+  --border-radius-table: 1rem;
+}
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  min-height: 4rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding-left: var(--content-padding);
+  padding-right: var(--content-padding);
+
+  /* Logo */
+  & .logo {
+    margin-right: auto;
+
+    & a, & a:visited {
+      color: black;
+      text-decoration: none;
+    }
+  }
+
+& .toggle-button, & .lang {
+  /* Add a border with some spacing to the buttons/labels */
+  > div {
+    display: flex;
+    flex-direction: row;
+    padding: 3px;
+    --border: 1px solid lightgrey;
+    border: var(--border);
+    border-radius: 7px;
+  }
+
+  &:hover, & *:hover {
+    cursor: pointer;
+  }
+
+  & label, & a, & a:visited {
+    color: black;
+    display: block;
+    padding: 0.5rem;
+    text-align: center;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+  }
+
+  /* Hide the actual inputs, but color the selected neighboring button/label */
+  & input {
+    display: none;
+  }
+
+  & input:checked + label, & a.selected {
+    background-color: var(--color-accent);
+    color: white;
+  }
+}
+
+  /* Keep entries button */
+  & .toggle-button {
+    & label {
+      border-radius: 5px;
+    }
+  }
+
+  /* Language selector */
+  & .lang {
+    display: flex;
+
+    /* Add rounded corners at the left and right most button/label
+       and separate each with a border on the right */
+    & label, & a {
+      border-right: var(--border);
+      width: 3.5rem;
+
+     &:first-of-type {
+      border-top-left-radius: 5px;
+      border-bottom-left-radius: 5px;
+     }
+
+     &:last-of-type {
+      border-top-right-radius: 5px;
+      border-bottom-right-radius: 5px;
+      border: none;
+     }
+    }
+  }
+}
+
+@media only screen and (max-width: 700px) {
+  header .logo span {
+    font-size: 1.15rem;
+  }
+}
+
+main {
+  padding-left: var(--content-padding);
+  padding-right: var(--content-padding);
+  margin-top: 2rem;
+  min-height: 90vh;
+
+  & table {
+    width: 100%;
+    border-spacing: 0;
+
+    & th {
+      padding: 1rem;
+    }
+
+    & tbody tr {
+      /* Add rounded corners to the top */
+      &:first-child {
+        & td {
+          padding-top: 1.2rem;
+        }
+
+        & td:first-child {
+          border-top-left-radius: var(--border-radius-table);
+        }
+
+        & td:last-child {
+          border-top-right-radius: var(--border-radius-table);
+        }
+      }
+
+      /* Add rounded corners to the bottom */
+      &:nth-last-child(2), &.placeholder {
+        & td {
+          padding-bottom: 1.2rem;
+        }
+
+        & td:first-child {
+          border-bottom-left-radius: var(--border-radius-table);
+        }
+
+        & td:last-child {
+          border-bottom-right-radius: var(--border-radius-table);
+        }
+      }
+
+      
+      /* Add separating lines between the rows */
+      &:not(:nth-last-child(2)):not(.placeholder) {
+        & td::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          height: 1px;
+          width: 100%;
+          border-bottom: 1px solid grey;
+        }
+
+        /* Let the lines start and end with some spacing */
+        & td:first-child::after {
+          left: 2rem;
+          width: calc(100% - 2rem);
+        }
+
+        & td:last-child::after {
+          width: calc(100% - 2rem);
+        }
+      }
+    }
+
+    & td {
+      padding: 0.7rem 0;
+      background-color: var(--color-table);
+      text-align: center;
+      position: relative;
+    }
+
+    /* Transmission indicator circle */
+    & td:is(.active, .inactive) > span {
+      display: inline-block;
+      width: 1.5rem;
+      height: 1.5rem;
+      background-color: rgb(153, 228, 41);
+      border-radius: 500px;
+      border: 2px solid rgb(94 218 36);
+    }
+
+    & td.inactive > span {
+      background-color: rgb(214 214 214);
+      border: 2px solid rgb(189 189 189);
+    }
+
+    /* Connection type icons */
+    & td.connection img {
+      width: 1.5rem;
+      height: 1.5rem;
+      margin-right: 0.3rem;
+    }
+
+    /* Caller id or name tag icon */
+    & td.caller img {
+      width: 1rem;
+      height: 1rem;
+      margin-right: 0.5rem;
+      cursor: pointer;
+    }
+
+    & tr.placeholder {
+      display: none;
+
+      &:only-child {
+        display: table-row;
+      }
+    }
+  }
+
+  &.table > section {
+    overflow-x: auto;
+  }
+
+  &.article {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 45rem) 1fr;
+    gap: 6rem;
+
+    & section {
+      grid-column: 2;
+    }
+  }
+
+  & aside {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    min-width: 10rem;
+
+    & ul {
+      padding: 0;
+      margin: 0;
+      margin-top: 1rem;
+      position: sticky;
+      top: 4rem;
+      list-style-type: none;
+    }
+
+    & nav {
+      max-width: 100%;
+    }
+
+    & li {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+  }
+
+  & article {
+    & p {
+      font-size: 1.1rem;
+      line-height: 1.6rem;
+    }
+
+    & :is(h1,h2,h3,h4,h5) {
+      position: relative;
+
+      & > a {
+        display: block;
+        position: absolute;
+        padding: 0.5rem;
+        top: -0.5rem;
+        left: -1.5rem;
+        color: grey;
+        text-decoration: none;
+        visibility: hidden;
+        opacity: 0;
+        transform: translateX(0.5rem);
+        transition: 0.2s ease-in-out;
+
+        &:hover {
+          text-decoration: underline;
+          color: black;
+        }
+
+        &::after {
+          content: '#';
+          font-weight: bold;
+          cursor: pointer;
+        }
+      }
+
+      &:hover > a, & > a:hover {
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  main.article {
+    gap: 2rem;
+  }
+
+  main.article aside {
+    display: none;
+  }
+}
+
+footer {
+  min-height: 10rem;
+  padding: 2rem;
+  padding-right: 4rem;
+  padding-top: 6rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 4rem;
+
+  & section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  & ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  & li {
+    margin-bottom: 0.8rem;
+    text-wrap: nowrap;
+  }
+
+  & a {
+    text-decoration: none;
+
+    &:hover, &:focus {
+      text-decoration: underline;
+    }
+
+    /* Do not underline the emojis */
+    & > span {
+      display: inline-block;
+      text-decoration: none !important;
+    }
+  }
+
+  & section.description {
+    font-style: italic;
+    justify-content: space-evenly;
+    margin-right: auto;
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  footer {
+    justify-content: center;
+    flex-wrap: wrap;
+
+    & section.description {
+      max-width: 16rem;
+      margin: 0;
+    }
+  }
+}
+
+@keyframes fall-in {
+  0% {
+    opacity: 0.3;
+    transform: translateY(-1rem);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#error-modal {
+  margin-top: 0;
+  border: none;
+  outline: none;
+  border-bottom-left-radius: var(--border-radius-table);
+  border-bottom-right-radius: var(--border-radius-table);
+  min-width: 12rem;
+  max-width: min(100% - 4rem, 32rem);
+  box-sizing: border-box;
+  padding: 1rem 2rem;
+  box-shadow: 2px 2px 8px 1px #00000030;
+
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.5rem;
+
+  &::backdrop {
+    background: #c3d7d930;
+  }
+
+  &[open] {
+    display: flex;
+    animation: fall-in 0.3s ease-out;
+  }
+
+  & > img {
+    width: 4rem;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  /* Close button placed in the top right corner */
+  & > form {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+
+    & button {
+      background: none;
+      outline: none;
+      border: none;
+      
+      & img {
+        width: 1rem;
+        aspect-ratio: 1;
+        object-fit: cover;
+      }
+
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+}

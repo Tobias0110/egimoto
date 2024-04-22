@@ -1,0 +1,41 @@
+{"YSF":{"action":"start","dg-id":32,"reflector":"OE8VLK","source":"network","source_cs":"OE8VIK","timestamp":"2024-04-21 19:01:55.604"}}
+
+{"YSF":{"action":"end","duration":174.8000030517578,"loss":0,"timestamp":"2024-04-21 19:04:51.391"}}
+
+{"MMDVM":{"mode":"idle","timestamp":"2024-04-21 19:48:44.935"}}
+
+{"DMR":{"action":"start","destination_id":2323,"destination_type":"group","slot":1,"source":"network","source_id":2323182,"source_info":"OE3AHU","timestamp":"2024-04-21 19:54:14.139"}}
+
+{"MMDVM":{"mode":"DMR","timestamp":"2024-04-21 19:54:14.144"}}
+
+{"DMR":{"action":"start","destination_id":2323,"destination_type":"group","slot":2,"source":"network","source_id":2323182,"source_info":"OE3AHU","timestamp":"2024-04-21 19:54:14.164"}}
+
+{"DMR":{"action":"end","ber":0.0,"duration":2.0999579429626465,"loss":34.0,"slot":1,"timestamp":"2024-04-21 19:54:15.878"}}
+
+{"DMR":{"action":"end","ber":0.0,"duration":2.0999579429626465,"loss":34.0,"slot":2,"timestamp":"2024-04-21 19:54:15.890"}}
+
+{"MMDVM":{"mode":"idle","timestamp":"2024-04-21 19:54:38.416"}}
+
+--Beacon--
+
+{"MMDVM":{"mode":"DMR","timestamp":"2024-04-21 20:03:45.079"}}
+
+{"MMDVM":{"mode":"idle","timestamp":"2024-04-21 20:03:48.073"}}
+
+--Analog--
+
+{"MMDVM":{"mode":"DMR","timestamp":"2024-04-21 21:30:18.522"}}
+
+{"DMR":{"action":"start","destination_id":2323,"destination_type":"group","slot":2,"source":"rf","source_id":2320170,"source_info":"OE3TEC","timestamp":"2024-04-21 21:30:18.956"}}
+
+{"RSSI":{"mode":"DMR","slot":2,"timestamp":"2024-04-21 21:30:19.563","value":-84}}
+
+{"DMR":{"action":"start","destination_id":2323,"destination_type":"group","slot":1,"source":"network","source_id":2320170,"source_info":"OE3TEC","timestamp":"2024-04-21 21:30:19.824"}}
+
+{"DMR":{"action":"end","ber":0.0,"duration":1.4399712085723877,"rssi":{"ave":-84,"max":-84,"min":-84},"slot":2,"timestamp":"2024-04-21 21:30:21.003"}}
+
+{"Text":{"mode":"DMR","slot":1,"timestamp":"2024-04-21 21:30:21.130","value":"OE3TEC Tobias"}}
+
+{"DMR":{"action":"end","ber":0.0,"duration":1.5599688291549683,"loss":0.0,"slot":1,"timestamp":"2024-04-21 21:30:21.269"}}
+
+{"MMDVM":{"mode":"idle","timestamp":"2024-04-21 21:30:43.134"}}
