@@ -116,6 +116,7 @@ client?.on('message', (topic, payload) => {
   }
 
   try {
+    /*
     // Parse the json into an object to add some additional fields
     const packet= JSON.parse( jsonString )
     const dmrMode= (packet.typ || packet.type || '').toLowerCase().indexOf('dmr') >= 0
@@ -127,6 +128,90 @@ client?.on('message', (topic, payload) => {
     if( dmrMode && callType && callType.toUpperCase() === 'PC') {
       const toFieldName= callerIdNames.get( parseInt(toField) )
       packet.toName= toFieldName ? `${callType} ${toFieldName}` : ''
+    }*/
+
+    const mess = JSON.parse(jsonString);
+
+    if(typeof mess.YSF != "undefined") {
+        if(mess.YSF.action == "start") {
+            console.log("YSF start:");
+            console.log(mess.YSF.source);
+            console.log(mess.YSF.source_cs);
+            console.log(mess.YSF['dg-id']);
+            console.log(mess.YSF.timestamp);
+        }
+        if(mess.YSF.action == "end") {
+            console.log("YSF stop:");
+            console.log(mess.YSF.loss);
+            if(typeof mess.YSF.rssi != "undefined") console.log(mess.YSF.rssi.ave);
+            console.log(mess.YSF.timestamp);
+        }      
+    }
+
+    else if(typeof mess.DMR != "undefined") {
+        if((mess.DMR.action == "start") && (mess.DMR.slot == 1)) {
+            console.log("DMR TS1 start:");
+            console.log(mess.DMR.source);
+            console.log(mess.DMR.source_id);
+            let type = "PC";
+            if(mess.DMR.destination_type == "group") type = "TG";
+            console.log(type + " " + mess.DMR.destination_id);
+            console.log(mess.DMR.timestamp);
+        }
+        else if((mess.DMR.action == "end") && (mess.DMR.slot == 1)) {
+            console.log("DMR TS1 stop:");
+            if(typeof mess.DMR.loss != "undefined") console.log(mess.DMR.loss);
+            console.log(mess.DMR.ber);
+            if(typeof mess.DMR.rssi != "undefined") console.log(mess.DMR.rssi.ave);
+            console.log(mess.DMR.timestamp);
+        }
+        else if((mess.DMR.action == "start") && (mess.DMR.slot == 2)) {
+            console.log("DMR TS2 start:");
+            console.log(mess.DMR.source);
+            console.log(mess.DMR.source_id);
+            let type = "PC";
+            if(mess.DMR.destination_type == "group") type = "TG";
+            console.log(type + " " + mess.DMR.destination_id);
+            console.log(mess.DMR.timestamp);
+        }
+        else if((mess.DMR.action == "end") && (mess.DMR.slot == 2)) {
+            console.log("DMR TS2 stop:");
+            if(typeof mess.DMR.loss != "undefined") console.log(mess.DMR.loss);
+            console.log(mess.DMR.ber);
+            if(typeof mess.DMR.rssi != "undefined") console.log(mess.DMR.rssi.ave);
+            console.log(mess.DMR.timestamp);
+        }
+    }
+
+    else if(typeof mess.M17 != "undefined") {
+        if(mess.M17.action == "start") {
+            console.log("m17 start:");
+            console.log(mess.M17.source);
+            console.log(mess.M17.source_cs);
+            console.log(mess.M17.destination_cs);
+            console.log(mess.M17.timestamp);
+        }
+        if(mess.M17.action == "end") {
+            console.log("M17 stop:");
+            if(typeof mess.M17.rssi != "undefined") console.log(mess.M17.rssi.ave);
+            console.log(mess.M17.timestamp);
+        }
+    }
+
+    // Mode
+    else if(typeof mess.MMDVM != "undefined") {
+        console.log(mess.MMDVM.mode);
+    }
+
+    // S-Meter
+    else if(typeof mess.RSSI != "undefined") {
+        console.log(mess.RSSI.value);
+        console.log(mess.RSSI.mode);
+    }
+
+    // Talker alias
+    else if(typeof mess.Text != "undefined") {
+        console.log(mess.Text.value);
     }
 
     handleOpenCalls( packet )
