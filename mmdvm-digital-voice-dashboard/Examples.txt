@@ -47,3 +47,7 @@
 {"MMDVM":{"mode":"M17","timestamp":"2024-04-23 08:32:32.477"}}
 
 {"M17":{"action":"end","duration":1.9600000381469727,"timestamp":"2024-04-23 08:32:34.368"}}
+
+--Fehlerfall--
+
+{"M17":{"action":"lost","duration":2.1600000858306885,"timestamp":"2024-04-24 12:18:02.899"}}

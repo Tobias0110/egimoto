@@ -45,16 +45,15 @@ function packetsHaveSameCall( a, b ) {
 const openCalls= []
 function handleOpenCalls( packet ) {
   if( packet.action === 'start' ) {
-    // Close any other open start packets if they do not have the same 'from' and 'to' fields
-    // The list therefore only contains packets with the same fields, so we can just compare with the first item
-    if( openCalls.length && packet.action === 'start' && !packetsHaveSameCall(openCalls[0], packet) ) {
+    // Close any other open start packets if new start packet is received.
+    if( openCalls.length && packet.action === 'start' ) {
       openCalls.forEach( startPacket => {
         const stopPacket= {...startPacket}
         stopPacket.time= new Date().toISOString()
         stopPacket.action= 'end'
         transmitPacket( stopPacket )
         
-        console.log(`[Stream] Generated missing stop packet: from ${stopPacket.from} -> to ${stopPacket.to}`)
+        //console.log(`[Stream] Generated missing stop packet: from ${stopPacket.from} -> to ${stopPacket.to}`)
       })
 
       openCalls.length= 0
@@ -132,20 +131,35 @@ client?.on('message', (topic, payload) => {
 
     const mess = JSON.parse(jsonString);
 
+    // action, external, typ, from, fromName, to, toName, time: isoTime
+    const packet = {external: false};
+    packet.time= new Date().toISOString();
+
     if(typeof mess.YSF != "undefined") {
+      packet.typ = "YSF";
         if(mess.YSF.action == "start") {
-            console.log("YSF start:");
+            /*console.log("YSF start:");
             console.log(mess.YSF.source);
             console.log(mess.YSF.source_cs);
             console.log(mess.YSF['dg-id']);
-            console.log(mess.YSF.timestamp);
+            console.log(mess.YSF.timestamp);*/
+            packet.action = "start";
+            if(mess.YSF.source == "network") packet.external = true;
+            packet.from = mess.YSF.source_cs;
+            packet.fromName = packet.from;
+            packet.to = "DG-ID " + mess.YSF['dg-id'];
+            packet.toName = packet.to;
         }
         if(mess.YSF.action == "end") {
-            console.log("YSF stop:");
+            /*console.log("YSF stop:");
             console.log(mess.YSF.loss);
             if(typeof mess.YSF.rssi != "undefined") console.log(mess.YSF.rssi.ave);
-            console.log(mess.YSF.timestamp);
-        }      
+            console.log(mess.YSF.timestamp);*/
+            packet.action = "end";
+            if(typeof mess.YSF.loss != "undefined") packet.loss = mess.YSF.loss;
+        }
+        handleOpenCalls( packet );
+        transmitPacket( packet );
     }
 
     else if(typeof mess.DMR != "undefined") {
@@ -184,18 +198,29 @@ client?.on('message', (topic, payload) => {
     }
 
     else if(typeof mess.M17 != "undefined") {
+      packet.typ = "M17";
         if(mess.M17.action == "start") {
-            console.log("m17 start:");
+            /*console.log("m17 start:");
             console.log(mess.M17.source);
             console.log(mess.M17.source_cs);
             console.log(mess.M17.destination_cs);
-            console.log(mess.M17.timestamp);
+            console.log(mess.M17.timestamp);*/
+            packet.action = "start";
+            if(mess.M17.source == "network") packet.external = true;
+            packet.from = mess.M17.source_cs;
+            packet.fromName = packet.from;
+            packet.to = mess.M17.destination_cs;
+            packet.toName = packet.to;
         }
         if(mess.M17.action == "end") {
-            console.log("M17 stop:");
+            /*console.log("M17 stop:");
             if(typeof mess.M17.rssi != "undefined") console.log(mess.M17.rssi.ave);
-            console.log(mess.M17.timestamp);
+            console.log(mess.M17.timestamp);*/
+            packet.action = "end";
+            if(typeof mess.M17.rssi != "undefined") packet.loss = mess.M17.rssi.ave;
         }
+        handleOpenCalls( packet );
+        transmitPacket( packet );
     }
 
     // Mode
@@ -213,9 +238,6 @@ client?.on('message', (topic, payload) => {
     else if(typeof mess.Text != "undefined") {
         console.log(mess.Text.value);
     }
-
-    handleOpenCalls( packet )
-    transmitPacket( packet )
 
   } catch( e ) {
     console.error('Could not decode mqtt message', e)

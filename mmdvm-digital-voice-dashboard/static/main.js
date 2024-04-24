@@ -148,8 +148,8 @@ if( window.location.pathname === '/' ) {
       const connectionElem= this.tableRow.appendChild( document.createElement('td') )
       connectionElem.classList.add('connection')
       connectionElem.appendChild( document.createElement('img') ).src= ''
-      connectionElem.appendChild( document.createElement('img') ).src= '/arrow.svg'
-      connectionElem.appendChild( document.createElement('img') ).src= '/online.svg'
+      //connectionElem.appendChild( document.createElement('img') ).src= '/arrow.svg'
+      //connectionElem.appendChild( document.createElement('img') ).src= '/online.svg'
 
       this.tableRow.appendChild( document.createElement('td') )
 
