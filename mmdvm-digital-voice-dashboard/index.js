@@ -45,8 +45,9 @@ function packetsHaveSameCall( a, b ) {
 const openCalls= []
 function handleOpenCalls( packet ) {
   if( packet.action === 'start' ) {
-    // Close any other open start packets if new start packet is received.
-    if( openCalls.length && packet.action === 'start' ) {
+    // Close any other open start packets if new start packet is received. Exept it is DMR.
+    // Repeater can handle only handle one call at the time and two calls in DMR mode.
+    if( openCalls.length && packet.action === 'start') {
       openCalls.forEach( startPacket => {
         const stopPacket= {...startPacket}
         stopPacket.time= new Date().toISOString()
@@ -60,14 +61,20 @@ function handleOpenCalls( packet ) {
     }
     
     // Remember this start packet for manually closing later if necessary
-    openCalls.push( packet )
+    openCalls.push( packet );
+    transmitPacket( packet );
   }
 
-  // Remove start packets from the open list if an incoming end packet matches the 'from', 'to' and 'typ(e)' fields
-  if( openCalls.length && packet.action === 'end' && packetsHaveSameCall(openCalls[0], packet) ) {
+  // Remove start packets from the open list if an incoming end packet matches the typ and create end packet
+  // Gets called for all end packages
+  if(packet.action === 'end') {
     for( let i= 0; i < openCalls.length; i++ ) {
       const startPacket= openCalls[i]
-      if( (startPacket.typ || startPacket.type) === (packet.typ || packet.type) ) {
+      if( (startPacket.typ) === (packet.typ) ) {
+        const stopPacket= {...startPacket}
+        stopPacket.time= new Date().toISOString()
+        stopPacket.action= 'end'
+        transmitPacket( stopPacket )
         openCalls.splice(i, 1)
         i--
       }
@@ -159,7 +166,6 @@ client?.on('message', (topic, payload) => {
             if(typeof mess.YSF.loss != "undefined") packet.loss = mess.YSF.loss;
         }
         handleOpenCalls( packet );
-        transmitPacket( packet );
     }
 
     else if(typeof mess.DMR != "undefined") {
@@ -220,7 +226,6 @@ client?.on('message', (topic, payload) => {
             if(typeof mess.M17.rssi != "undefined") packet.loss = mess.M17.rssi.ave;
         }
         handleOpenCalls( packet );
-        transmitPacket( packet );
     }
 
     // Mode
