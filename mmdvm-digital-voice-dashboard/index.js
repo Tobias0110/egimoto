@@ -15,9 +15,23 @@ dotenv.config()
 const currentDirectory= url.fileURLToPath( new URL('.', import.meta.url) )
 const maxPacketHistoryLength= parseInt(process.env.MAX_PACKET_HISTORY_LENGTH)
 const packetHistory= []
+// Remember which DMR time slots are in use
+let ts1_in_use = false;
+let ts2_in_use = false;
 
 function transmitPacket( packet ) {
   stream.send( packet )
+
+  // Keep track of DMR timeslosts in use
+  if(packet.typ == "DMR TS1" & packet.action == "start") ts1_in_use = true;
+  else if(packet.typ == "DMR TS1" & packet.action == "end") ts1_in_use = false;
+  else if(packet.typ == "DMR TS2" & packet.action == "start") ts2_in_use = true;
+  else if(packet.typ == "DMR TS2" & packet.action == "end") ts2_in_use = false;
+  // If a package that doesn't belong to DMR is sent, no timeslot can be active.
+  else {
+    ts1_in_use = false;
+    ts2_in_use = false;
+  }
 
   // Add packet to the history and delete old ones if necessary
   packetHistory.push( packet )
@@ -30,24 +44,12 @@ function packetsHaveSameCall( a, b ) {
   return a.to === b.to && a.from === b.from
 }
 
-/**
- * The following setup prevents calls from going on indefinitely when there is a mismatch of start and
- * end packets. This can happen (frequently) when the system receives a start packet, but no end packet.
- * However, as DMR only allows one speaker at a time, we can safely assume that a call has ended when a  
- * start packet for a different one comes in. 
- * This is a bit more complicated by the fact, that the DMR system can broadcast the same speaker on
- * different time slots concurrently. Therefore, instead of only remembering the currently open call, we
- * store a list of all calls started with the same 'from' and 'to' fields. Whenever an end packet comes
- * in that matches a packet in the list, we remove it from the list. In case a start packet arrives that
- * does not match the list, we assume that we lost at least one end packet and generate the end packets
- * ourselves on the fly and empty the list. The new start packet is then again added to the list.
- */
 const openCalls= []
 function handleOpenCalls( packet ) {
   if( packet.action === 'start' ) {
-    // Close any other open start packets if new start packet is received. Exept it is DMR.
-    // Repeater can handle only handle one call at the time and two calls in DMR mode.
-    if( openCalls.length && packet.action === 'start') {
+    // Close any other open calls if a new start packet is received, exept the start packet is for the DMR timeslot that is curently not in use.
+    // Repeater can handle two DMR calls on diffrent time slots and in all other modes only one call at a time.
+    if( openCalls.length && packet.action === 'start' && !((packet.typ == "DMR TS1" && ts2_in_use == true && ts1_in_use == false) || (packet.typ == "DMR TS2" && ts1_in_use == true && ts2_in_use == false))) {
       openCalls.forEach( startPacket => {
         const stopPacket= {...startPacket}
         stopPacket.time= new Date().toISOString()
@@ -62,6 +64,7 @@ function handleOpenCalls( packet ) {
     
     // Remember this start packet for manually closing later if necessary
     openCalls.push( packet );
+    // Nothing to close, just send a start package
     transmitPacket( packet );
   }
 
@@ -157,7 +160,7 @@ client?.on('message', (topic, payload) => {
             packet.to = "DG-ID " + mess.YSF['dg-id'];
             packet.toName = packet.to;
         }
-        if(mess.YSF.action == "end") {
+        else if(mess.YSF.action == "end") {
             /*console.log("YSF stop:");
             console.log(mess.YSF.loss);
             if(typeof mess.YSF.rssi != "undefined") console.log(mess.YSF.rssi.ave);
@@ -170,37 +173,60 @@ client?.on('message', (topic, payload) => {
 
     else if(typeof mess.DMR != "undefined") {
         if((mess.DMR.action == "start") && (mess.DMR.slot == 1)) {
-            console.log("DMR TS1 start:");
+            /*console.log("DMR TS1 start:");
             console.log(mess.DMR.source);
             console.log(mess.DMR.source_id);
             let type = "PC";
             if(mess.DMR.destination_type == "group") type = "TG";
             console.log(type + " " + mess.DMR.destination_id);
-            console.log(mess.DMR.timestamp);
+            console.log(mess.DMR.timestamp);*/
+            packet.typ = "DMR TS1";
+            packet.action = "start";
+            if(mess.DMR.source == "network") packet.external = true;
+            packet.from = mess.DMR.source_id;
+            packet.fromName = mess.DMR.source_info;
+            let typ = "PC";
+            if(mess.DMR.destination_type == "group") typ = "TG";
+            packet.to = typ + " " + mess.DMR.destination_id;
+            packet.toName = packet.to;
         }
         else if((mess.DMR.action == "end") && (mess.DMR.slot == 1)) {
-            console.log("DMR TS1 stop:");
+            /*console.log("DMR TS1 stop:");
             if(typeof mess.DMR.loss != "undefined") console.log(mess.DMR.loss);
             console.log(mess.DMR.ber);
             if(typeof mess.DMR.rssi != "undefined") console.log(mess.DMR.rssi.ave);
-            console.log(mess.DMR.timestamp);
+            console.log(mess.DMR.timestamp);*/
+            packet.typ = "DMR TS1";
+            packet.action = "end";
         }
         else if((mess.DMR.action == "start") && (mess.DMR.slot == 2)) {
-            console.log("DMR TS2 start:");
+            /*console.log("DMR TS2 start:");
             console.log(mess.DMR.source);
             console.log(mess.DMR.source_id);
             let type = "PC";
             if(mess.DMR.destination_type == "group") type = "TG";
             console.log(type + " " + mess.DMR.destination_id);
-            console.log(mess.DMR.timestamp);
+            console.log(mess.DMR.timestamp);*/
+            packet.typ = "DMR TS2";
+            packet.action = "start";
+            if(mess.DMR.source == "network") packet.external = true;
+            packet.from = mess.DMR.source_id;
+            packet.fromName = mess.DMR.source_info;
+            let typ = "PC";
+            if(mess.DMR.destination_type == "group") typ = "TG";
+            packet.to = typ + " " + mess.DMR.destination_id;
+            packet.toName = packet.to;
         }
         else if((mess.DMR.action == "end") && (mess.DMR.slot == 2)) {
-            console.log("DMR TS2 stop:");
+            /*console.log("DMR TS2 stop:");
             if(typeof mess.DMR.loss != "undefined") console.log(mess.DMR.loss);
             console.log(mess.DMR.ber);
             if(typeof mess.DMR.rssi != "undefined") console.log(mess.DMR.rssi.ave);
-            console.log(mess.DMR.timestamp);
+            console.log(mess.DMR.timestamp);*/
+            packet.typ = "DMR TS2";
+            packet.action = "end";
         }
+        handleOpenCalls( packet );
     }
 
     else if(typeof mess.M17 != "undefined") {
@@ -218,12 +244,12 @@ client?.on('message', (topic, payload) => {
             packet.to = mess.M17.destination_cs;
             packet.toName = packet.to;
         }
-        if(mess.M17.action == "end") {
+        else if(mess.M17.action == "end") {
             /*console.log("M17 stop:");
             if(typeof mess.M17.rssi != "undefined") console.log(mess.M17.rssi.ave);
             console.log(mess.M17.timestamp);*/
             packet.action = "end";
-            if(typeof mess.M17.rssi != "undefined") packet.loss = mess.M17.rssi.ave;
+            if(typeof mess.M17.rssi != "undefined") packet.rssi = mess.M17.rssi.ave;
         }
         handleOpenCalls( packet );
     }
