@@ -17,7 +17,7 @@ export default {
     "show ids": "IDs anzeigen",
     "show names": "Namen anzeigen",
     "loss": "Netzwerk-Verlust",
-    "ber": "HF-Verlust",
+    "ber": "Bit Error Rate",
     "rssi": "Signal"
   },
   "en": {

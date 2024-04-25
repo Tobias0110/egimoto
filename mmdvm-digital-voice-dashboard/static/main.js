@@ -159,6 +159,13 @@ if( window.location.pathname === '/' ) {
         this.displayCallerFieldNames( this.mode.toLowerCase().indexOf('dmr') < 0 || !this.showsCallerNames )
       })
       callerElem.appendChild( document.createElement('span') )
+
+      const lossElem = this.tableRow.appendChild( document.createElement('td') )
+      lossElem.innerText= '-'
+
+      this.tableRow.appendChild( document.createElement('td') )
+
+      this.tableRow.appendChild( document.createElement('td') )
       
       const clockElem= this.tableRow.appendChild( document.createElement('td') )
       clockElem.innerText= '-'
@@ -169,7 +176,14 @@ if( window.location.pathname === '/' ) {
     }
 
     updateFromPacket( config ) {
-      const {action, external, typ, type, from, fromName, to, toName, time: isoTime}= config
+      const {action, external, typ, type, from, fromName, to, toName, loss, ber, rssi, time: isoTime}= config
+
+      this._loss = loss
+      this.lossElem.innerText = this._loss
+      this._ber = ber
+      this.berElem.innerText = this._ber
+      this._rssi = rssi
+      this.rssiElem.innerText = this._rssi
 
       this.callerId= from
       this.mode= type || typ || ''
@@ -316,8 +330,11 @@ if( window.location.pathname === '/' ) {
     get connectionElem() { return this.tableRow.cells[1] }
     get modeElem() { return this.tableRow.cells[2] }
     get callerElem() { return this.tableRow.cells[3] }
-    get clockElem() { return this.tableRow.cells[4] }
-    get timestampElem() { return this.tableRow.cells[5] }
+    get lossElem() { return this.tableRow.cells[4]}
+    get berElem() { return this.tableRow.cells[5]}
+    get rssiElem() { return this.tableRow.cells[6]}
+    get clockElem() { return this.tableRow.cells[7] }
+    get timestampElem() { return this.tableRow.cells[8] }
   }
 
   // Get the main table and setup the clock update timer (update every 500ms)

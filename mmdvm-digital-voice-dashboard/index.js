@@ -77,6 +77,9 @@ function handleOpenCalls( packet ) {
         const stopPacket= {...startPacket}
         stopPacket.time= new Date().toISOString()
         stopPacket.action= 'end'
+        stopPacket.loss= packet.loss;
+        stopPacket.ber= packet.ber;
+        stopPacket.rssi= packet.rssi;
         transmitPacket( stopPacket )
         openCalls.splice(i, 1)
         i--
@@ -159,6 +162,9 @@ client?.on('message', (topic, payload) => {
             packet.fromName = packet.from;
             packet.to = "DG-ID " + mess.YSF['dg-id'];
             packet.toName = packet.to;
+            packet.loss = '-';
+            packet.ber = '-';
+            packet.rssi = '-';
         }
         else if(mess.YSF.action == "end") {
             /*console.log("YSF stop:");
@@ -166,7 +172,13 @@ client?.on('message', (topic, payload) => {
             if(typeof mess.YSF.rssi != "undefined") console.log(mess.YSF.rssi.ave);
             console.log(mess.YSF.timestamp);*/
             packet.action = "end";
-            if(typeof mess.YSF.loss != "undefined") packet.loss = mess.YSF.loss;
+            // there are packets without this
+            if(typeof mess.YSF.loss != "undefined") packet.loss = parseFloat(mess.YSF.loss).toFixed(2) + '%';
+            else packet.loss = '-';
+            if(typeof mess.YSF.ber != "undefined") packet.ber= parseFloat(mess.YSF.ber).toFixed(2) + '%';
+            else packet.ber = '-';
+            if(typeof mess.YSF.rssi != "undefined") packet.rssi= mess.YSF.rssi.ave + 'dBm';
+            else packet.rssi = '-';
         }
         handleOpenCalls( packet );
     }
@@ -189,6 +201,9 @@ client?.on('message', (topic, payload) => {
             if(mess.DMR.destination_type == "group") typ = "TG";
             packet.to = typ + " " + mess.DMR.destination_id;
             packet.toName = packet.to;
+            packet.loss = '-';
+            packet.ber = '-';
+            packet.rssi = '-';
         }
         else if((mess.DMR.action == "end") && (mess.DMR.slot == 1)) {
             /*console.log("DMR TS1 stop:");
@@ -198,6 +213,12 @@ client?.on('message', (topic, payload) => {
             console.log(mess.DMR.timestamp);*/
             packet.typ = "DMR TS1";
             packet.action = "end";
+            if(typeof mess.DMR.loss != "undefined") packet.loss= parseFloat(mess.DMR.loss).toFixed(2) + '%';
+            else packet.loss = '-';
+            if(typeof mess.DMR.ber != "undefined") packet.ber= parseFloat(mess.DMR.ber).toFixed(2) + '%';
+            else packet.ber = '-';
+            if(typeof mess.DMR.rssi != "undefined") packet.rssi= mess.DMR.rssi.ave + 'dBm';
+            else packet.rssi = '-';
         }
         else if((mess.DMR.action == "start") && (mess.DMR.slot == 2)) {
             /*console.log("DMR TS2 start:");
@@ -216,6 +237,9 @@ client?.on('message', (topic, payload) => {
             if(mess.DMR.destination_type == "group") typ = "TG";
             packet.to = typ + " " + mess.DMR.destination_id;
             packet.toName = packet.to;
+            packet.loss = '-';
+            packet.ber = '-';
+            packet.rssi = '-';
         }
         else if((mess.DMR.action == "end") && (mess.DMR.slot == 2)) {
             /*console.log("DMR TS2 stop:");
@@ -225,6 +249,12 @@ client?.on('message', (topic, payload) => {
             console.log(mess.DMR.timestamp);*/
             packet.typ = "DMR TS2";
             packet.action = "end";
+            if(typeof mess.DMR.loss != "undefined") packet.loss= parseFloat(mess.DMR.loss).toFixed(2) + '%';
+            else packet.loss = '-';
+            if(typeof mess.DMR.ber != "undefined") packet.ber= parseFloat(mess.DMR.ber).toFixed(2) + '%';
+            else packet.ber = '-';
+            if(typeof mess.DMR.rssi != "undefined") packet.rssi= mess.DMR.rssi.ave + 'dBm';
+            else packet.rssi = '-';
         }
         handleOpenCalls( packet );
     }
@@ -243,6 +273,9 @@ client?.on('message', (topic, payload) => {
             packet.fromName = packet.from;
             packet.to = mess.M17.destination_cs;
             packet.toName = packet.to;
+            packet.loss = '-';
+            packet.ber = '-';
+            packet.rssi = '-';
         }
         else if(mess.M17.action == "end") {
             /*console.log("M17 stop:");
