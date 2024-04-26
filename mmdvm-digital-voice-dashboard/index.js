@@ -282,7 +282,12 @@ client?.on('message', (topic, payload) => {
             if(typeof mess.M17.rssi != "undefined") console.log(mess.M17.rssi.ave);
             console.log(mess.M17.timestamp);*/
             packet.action = "end";
-            if(typeof mess.M17.rssi != "undefined") packet.rssi = mess.M17.rssi.ave;
+            if(typeof mess.M17.loss != "undefined") packet.loss= parseFloat(mess.M17.loss).toFixed(2) + '%';
+            else packet.loss = '-';
+            if(typeof mess.M17.ber != "undefined") packet.ber= parseFloat(mess.M17.ber).toFixed(2) + '%';
+            else packet.ber = '-';
+            if(typeof mess.M17.rssi != "undefined") packet.rssi= mess.M17.rssi.ave + 'dBm';
+            else packet.rssi = '-';
         }
         handleOpenCalls( packet );
     }
