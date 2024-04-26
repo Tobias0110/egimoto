@@ -18,6 +18,8 @@ const packetHistory= []
 // Remember which DMR time slots are in use
 let ts1_in_use = false;
 let ts2_in_use = false;
+// Remember last status for new users
+let lastStatus = {mode: 'idle', rssi: '-', text: '-', swr: '-', temp: '-', hum: '-'};
 
 function transmitPacket( packet ) {
   stream.send( packet )
@@ -40,8 +42,15 @@ function transmitPacket( packet ) {
   }
 }
 
-function packetsHaveSameCall( a, b ) {
-  return a.to === b.to && a.from === b.from
+function transmitStatus( packet ) {
+  // Update only available / changing fields
+  if(typeof packet.mode != "undefined") lastStatus.mode = packet.mode;
+  if(typeof packet.rssi != "undefined") lastStatus.rssi = packet.rssi;
+  if(typeof packet.text != "undefined") lastStatus.text = packet.text;
+  if(typeof packet.swr != "undefined") lastStatus.swr = packet.swr;
+  if(typeof packet.temp != "undefined") lastStatus.temp = packet.temp;
+  if(typeof packet.hum != "undefined") lastStatus.hum = packet.hum;
+  status_stream.send(lastStatus);
 }
 
 const openCalls= []
@@ -117,6 +126,10 @@ const stream= new SSE()
 app.get('/stream', stream.init)
 app.get('/history', (req, resp) => resp.send(packetHistory) )
 
+const status_stream= new SSE()
+app.get('/status_stream', status_stream.init)
+app.get('/status', (req, resp) => resp.send(lastStatus))
+
 client?.on('message', (topic, payload) => {
   if( topic !== process.env.MQTT_TOPIC ) {
     return
@@ -146,6 +159,7 @@ client?.on('message', (topic, payload) => {
 
     // action, external, typ, from, fromName, to, toName, time: isoTime
     const packet = {external: false};
+    const sPacket ={};
     packet.time= new Date().toISOString();
 
     if(typeof mess.YSF != "undefined") {
@@ -166,7 +180,7 @@ client?.on('message', (topic, payload) => {
             packet.ber = '-';
             packet.rssi = '-';
         }
-        else if(mess.YSF.action == "end") {
+        else if(mess.YSF.action == "end" || mess.YSF.action == 'lost') {
             /*console.log("YSF stop:");
             console.log(mess.YSF.loss);
             if(typeof mess.YSF.rssi != "undefined") console.log(mess.YSF.rssi.ave);
@@ -205,7 +219,7 @@ client?.on('message', (topic, payload) => {
             packet.ber = '-';
             packet.rssi = '-';
         }
-        else if((mess.DMR.action == "end") && (mess.DMR.slot == 1)) {
+        else if((mess.DMR.action == "end" || mess.DMR.action == 'lost') && (mess.DMR.slot == 1)) {
             /*console.log("DMR TS1 stop:");
             if(typeof mess.DMR.loss != "undefined") console.log(mess.DMR.loss);
             console.log(mess.DMR.ber);
@@ -241,7 +255,7 @@ client?.on('message', (topic, payload) => {
             packet.ber = '-';
             packet.rssi = '-';
         }
-        else if((mess.DMR.action == "end") && (mess.DMR.slot == 2)) {
+        else if((mess.DMR.action == "end" || mess.DMR.action == 'lost') && (mess.DMR.slot == 2)) {
             /*console.log("DMR TS2 stop:");
             if(typeof mess.DMR.loss != "undefined") console.log(mess.DMR.loss);
             console.log(mess.DMR.ber);
@@ -277,7 +291,7 @@ client?.on('message', (topic, payload) => {
             packet.ber = '-';
             packet.rssi = '-';
         }
-        else if(mess.M17.action == "end") {
+        else if(mess.M17.action == "end" || mess.M17.action == 'lost') {
             /*console.log("M17 stop:");
             if(typeof mess.M17.rssi != "undefined") console.log(mess.M17.rssi.ave);
             console.log(mess.M17.timestamp);*/
@@ -294,18 +308,24 @@ client?.on('message', (topic, payload) => {
 
     // Mode
     else if(typeof mess.MMDVM != "undefined") {
-        console.log(mess.MMDVM.mode);
+        sPacket.mode = mess.MMDVM.mode;
+        if(mess.MMDVM.mode == 'idle') {
+          sPacket.rssi = '-';
+          sPacket.text = '-';
+        }
+        transmitStatus(sPacket);
     }
 
     // S-Meter
     else if(typeof mess.RSSI != "undefined") {
-        console.log(mess.RSSI.value);
-        console.log(mess.RSSI.mode);
+        sPacket.mode = mess.RSSI.mode;
+        sPacket.rssi = mess.RSSI.value;
+        transmitStatus(sPacket);
     }
 
     // Talker alias
     else if(typeof mess.Text != "undefined") {
-        console.log(mess.Text.value);
+        sPacket.text = mess.Text.value;
     }
 
   } catch( e ) {

@@ -48,6 +48,10 @@
 
 {"M17":{"action":"end","duration":1.9600000381469727,"timestamp":"2024-04-23 08:32:34.368"}}
 
+
+
 --Fehlerfall--
 
-{"M17":{"action":"lost","duration":2.1600000858306885,"timestamp":"2024-04-24 12:18:02.899"}}
+{"M17":{"action":"start","destination_cs":"ALL","source":"network","source_cs":"OE5MHX","timestamp":"2024-04-26 21:47:07.127","traffic_type":"audio"}}
+
+{"M17":{"action":"lost","duration":1.159999966621399,"timestamp":"2024-04-26 21:41:39.062"}}
