@@ -19,7 +19,7 @@ const packetHistory= []
 let ts1_in_use = false;
 let ts2_in_use = false;
 // Remember last status for new users
-let lastStatus = {mode: 'idle', rssi: '-', text: '-', swr: '-', temp: '-', hum: '-'};
+let lastStatus = {mode: 'IDLE', rssi: '-', text: '-', swr: '-', temp: '-', hum: '-'};
 
 function transmitPacket( packet ) {
   stream.send( packet )
@@ -308,7 +308,7 @@ client?.on('message', (topic, payload) => {
 
     // Mode
     else if(typeof mess.MMDVM != "undefined") {
-        sPacket.mode = mess.MMDVM.mode;
+        sPacket.mode = mess.MMDVM.mode.toUpperCase();
         if(mess.MMDVM.mode == 'idle') {
           sPacket.rssi = '-';
           sPacket.text = '-';
@@ -318,7 +318,7 @@ client?.on('message', (topic, payload) => {
 
     // S-Meter
     else if(typeof mess.RSSI != "undefined") {
-        sPacket.mode = mess.RSSI.mode;
+        sPacket.mode = mess.RSSI.mode.toUpperCase();
         sPacket.rssi = mess.RSSI.value;
         transmitStatus(sPacket);
     }

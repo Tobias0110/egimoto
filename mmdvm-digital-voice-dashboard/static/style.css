@@ -1,6 +1,6 @@
 
 :root {
-  --color-accent: #00bef3;
+  --color-accent: #f38200;
   --content-padding: 2rem;
   --color-table: #ececec;
   --border-radius-table: 1rem;
@@ -113,9 +113,61 @@ main {
   margin-top: 2rem;
   min-height: 90vh;
 
+  .status {
+    display: grid;
+    grid-template-columns: [col1] 1fr [col2] 1fr [col3] 1fr;
+    grid-template-rows: [row1] 1fr [row2] 2fr [row3] 1fr [row4] 2fr;
+    background-color: #ececec;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+  }
+
+  .status>:nth-child(1) {
+    background-color:rgb(214, 214, 214);
+    border-top-left-radius: 1rem;
+  }
+
+  .status>:nth-child(2), .status>:nth-child(8) {
+    background-color:rgb(214, 214, 214);
+    border-left: 1px solid grey;
+    border-right: 1px solid grey;
+  }
+
+  .status>:nth-child(3) {
+    background-color:rgb(214, 214, 214);
+    border-top-right-radius: 1rem;
+  }
+
+  .status>:nth-child(7), .status>:nth-child(9) {
+    background-color:rgb(214, 214, 214);
+  }
+
+  .status>:nth-child(5), .status>:nth-child(11) {
+    border-left: 1px solid grey;
+    border-right: 1px solid grey;
+  }
+  .status>:nth-child(4), .status>:nth-child(5), .status>:nth-child(6), .status>:nth-child(10), .status>:nth-child(11), .status>:nth-child(12) {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+  }
+
+  .status__header {
+    padding-left: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .status__value {
+    font-size: 3rem;
+  }
+
   & table {
     width: 100%;
     border-spacing: 0;
+    padding-top: 2rem;
 
     & th {
       padding: 1rem;

@@ -91,6 +91,23 @@ if( window.location.pathname === '/' ) {
     }
   }
 
+  async function loadStatus() {
+    try {
+      const statusResp= await fetch('/status')
+      if( !statusResp.ok ) {
+        throw Error(`Server status was: ${statusResp.status}`)
+      }
+
+      const status= await statusResp.json()
+
+      return status
+
+    } catch( e ) {
+      console.error('Could not load status:', e)
+      return []
+    }
+  }
+
   class HistoryStream {
     constructor( url, history= [] ) {
       this._stream= new EventSource( url )
@@ -126,6 +143,41 @@ if( window.location.pathname === '/' ) {
     forEach( func ) {
       this._history.forEach( func )
     }
+  }
+
+  class StatusStream {
+    constructor( url, status ) {
+      this._stream= new EventSource( url )
+      this._status= status
+      this.onPacket= null
+
+      this._stream.addEventListener('message', event => this._handlePacket(event))
+      this._stream.addEventListener('error', event => this._handleError(event))
+    }
+
+    _handlePacket( event ) {
+      try {
+        const packet= JSON.parse( event.data )
+        this._status = packet
+
+        if( this.onPacket ) {
+          this.onPacket( packet )
+        }
+        
+      } catch( e ) {
+        console.error('Could not handle incoming packet:', e)
+      }
+    }
+
+    _handleError( event ) {
+      console.error('SSE error:', event)
+      showErrorModal('Lost connection to the server. Try reloading the page')
+    }
+
+    init(func) {
+       func(this._status)
+    }
+
   }
 
   class Talker {
@@ -381,12 +433,25 @@ if( window.location.pathname === '/' ) {
     newTalker.attach( table )
   }
 
+  function consumeStatus( packet ) {
+    document.getElementById("mode").innerHTML = packet.mode;
+    document.getElementById("smeter").innerHTML = packet.rssi;
+    document.getElementById("text").innerHTML = packet.text;
+    document.getElementById("swr").innerHTML = packet.swr;
+    document.getElementById("temp").innerHTML = packet.temp;
+    document.getElementById("hum").innerHTML = packet.hum;
+  }
+
   // Connect to the server-sent-event source
   const history= await loadHistory()
   const stream= new HistoryStream('/stream', history)
+  const status= await loadStatus()
+  const status_stream = new StatusStream('status_stream', status)
 
   stream.forEach( consumePacket )
   stream.onPacket= consumePacket
+  status_stream.init(consumeStatus)
+  status_stream.onPacket= consumeStatus
 
   // Setup chronological/grouped view toggle button
   chronologicalCheckbox.addEventListener('change', e => {
