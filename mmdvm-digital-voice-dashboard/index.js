@@ -21,6 +21,28 @@ let ts2_in_use = false;
 // Remember last status for new users
 let lastStatus = {mode: 'IDLE', rssi: '-', text: '-', swr: '-', temp: '-', hum: '-'};
 
+function convert_to_s_value(rssi) {
+  let diff;
+  let s_value;
+  let s_string;
+
+  // over S9
+  if( rssi >= -83) {
+    diff = -83 - rssi - 1;
+    s_value = Math.ceil(diff / -10)*10;
+    s_string = 'S9+' + s_value + 'dB (' + rssi + 'dBm)';
+  }
+  // S9
+  else if ( rssi >= -93 && rssi < -83) s_string = 'S9 (' + rssi + 'dBm)';
+  // below S9
+  else {
+  diff = -141 - rssi - 1;
+  s_value = Math.ceil(diff / -6);
+  s_string = 'S' + s_value + ' (' + rssi + 'dBm)';
+  }
+  return s_string;
+}
+
 function transmitPacket( packet ) {
   stream.send( packet )
 
@@ -131,7 +153,22 @@ app.get('/status_stream', status_stream.init)
 app.get('/status', (req, resp) => resp.send(lastStatus))
 
 client?.on('message', (topic, payload) => {
-  if( topic !== process.env.MQTT_TOPIC ) {
+  // action, external, typ, from, fromName, to, toName, time: isoTime
+  const packet = {external: false};
+  const sPacket ={};
+
+  if(topic == process.env.MQTT_TEMP) {
+    let value = parseInt(payload)/10;
+    sPacket.temp = value + '°C';
+    transmitStatus(sPacket);
+  }
+  else if(topic == process.env.MQTT_HUM) {
+    let value = parseInt(payload);
+    sPacket.hum = value + '%';
+    transmitStatus(sPacket);
+  }
+
+  if( topic !== process.env.MQTT_MMDVM ) {
     return
   }
 
@@ -156,10 +193,6 @@ client?.on('message', (topic, payload) => {
     }*/
 
     const mess = JSON.parse(jsonString);
-
-    // action, external, typ, from, fromName, to, toName, time: isoTime
-    const packet = {external: false};
-    const sPacket ={};
     packet.time= new Date().toISOString();
 
     if(typeof mess.YSF != "undefined") {
@@ -191,7 +224,7 @@ client?.on('message', (topic, payload) => {
             else packet.loss = '-';
             if(typeof mess.YSF.ber != "undefined") packet.ber= parseFloat(mess.YSF.ber).toFixed(2) + '%';
             else packet.ber = '-';
-            if(typeof mess.YSF.rssi != "undefined") packet.rssi= mess.YSF.rssi.ave + 'dBm';
+            if(typeof mess.YSF.rssi != "undefined") packet.rssi= convert_to_s_value(mess.YSF.rssi.ave);
             else packet.rssi = '-';
         }
         handleOpenCalls( packet );
@@ -231,7 +264,7 @@ client?.on('message', (topic, payload) => {
             else packet.loss = '-';
             if(typeof mess.DMR.ber != "undefined") packet.ber= parseFloat(mess.DMR.ber).toFixed(2) + '%';
             else packet.ber = '-';
-            if(typeof mess.DMR.rssi != "undefined") packet.rssi= mess.DMR.rssi.ave + 'dBm';
+            if(typeof mess.DMR.rssi != "undefined") packet.rssi= convert_to_s_value(mess.DMR.rssi.ave);
             else packet.rssi = '-';
         }
         else if((mess.DMR.action == "start") && (mess.DMR.slot == 2)) {
@@ -267,7 +300,7 @@ client?.on('message', (topic, payload) => {
             else packet.loss = '-';
             if(typeof mess.DMR.ber != "undefined") packet.ber= parseFloat(mess.DMR.ber).toFixed(2) + '%';
             else packet.ber = '-';
-            if(typeof mess.DMR.rssi != "undefined") packet.rssi= mess.DMR.rssi.ave + 'dBm';
+            if(typeof mess.DMR.rssi != "undefined") packet.rssi= convert_to_s_value(mess.DMR.rssi.ave);
             else packet.rssi = '-';
         }
         handleOpenCalls( packet );
@@ -300,7 +333,7 @@ client?.on('message', (topic, payload) => {
             else packet.loss = '-';
             if(typeof mess.M17.ber != "undefined") packet.ber= parseFloat(mess.M17.ber).toFixed(2) + '%';
             else packet.ber = '-';
-            if(typeof mess.M17.rssi != "undefined") packet.rssi= mess.M17.rssi.ave + 'dBm';
+            if(typeof mess.M17.rssi != "undefined") packet.rssi= convert_to_s_value(mess.M17.rssi.ave);
             else packet.rssi = '-';
         }
         handleOpenCalls( packet );
@@ -319,13 +352,15 @@ client?.on('message', (topic, payload) => {
     // S-Meter
     else if(typeof mess.RSSI != "undefined") {
         sPacket.mode = mess.RSSI.mode.toUpperCase();
-        sPacket.rssi = mess.RSSI.value;
+        sPacket.rssi = convert_to_s_value(mess.RSSI.value);
         transmitStatus(sPacket);
     }
 
     // Talker alias
     else if(typeof mess.Text != "undefined") {
-        sPacket.text = mess.Text.value;
+      sPacket.mode = mess.Text.mode.toUpperCase();
+      sPacket.text = '<marquee behavior="scroll" direction="left">' + mess.Text.value + '</marquee>';
+      transmitStatus(sPacket);
     }
 
   } catch( e ) {

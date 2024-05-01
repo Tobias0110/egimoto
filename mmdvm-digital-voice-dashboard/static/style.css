@@ -164,6 +164,10 @@ main {
     font-size: 3rem;
   }
 
+  .status__s_meter {
+    font-size: 2rem;
+  }
+
   & table {
     width: 100%;
     border-spacing: 0;

@@ -11,7 +11,9 @@ export async function mqttConnect() {
 
     // Subscribe to the topic
     console.log('[MQTT] Connected to server')
-    await client.subscribeAsync(process.env.MQTT_TOPIC)
+    let topic_list = [];
+    topic_list.push(process.env.MQTT_MMDVM, process.env.MQTT_TEMP, process.env.MQTT_HUM);
+    await client.subscribeAsync(topic_list);
 
     // Setup event listeners for errors or reconnect
     client.on("reconnect", () => {
