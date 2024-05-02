@@ -18,11 +18,13 @@ export default {
     "show names": "Namen anzeigen",
     "loss": "Netzwerk-Verlust",
     "ber": "Bit Error Rate",
-    "rssi": "Signal"
+    "rssi": "Signal",
+    "temp": "Temperatur",
+    "hum": "Luftfeuchtigkeit"
   },
   "en": {
-    "Active": "Active",
-    "connection": "Connection",
+    "status": "Status",
+    "source": "Source",
     "mode": "Mode",
     "call": "Call",
     "duration": "Duration",
@@ -36,11 +38,16 @@ export default {
     "keep entries": "Keep entries",
     "chronological": "Chronological",
     "show ids": "Show IDs",
-    "show names": "Show names"
+    "show names": "Show names",
+    "loss": "Network Loss",
+    "ber": "Bit Error Rate",
+    "rssi": "Signal",
+    "temp": "Temperature",
+    "hum": "Humidity"
   },
   "cz": {
-    "Active": "Aktivní",
-    "connection": "Připojení",
+    "status": "Stav",
+    "source": "Zdroj",
     "mode": "Mode",
     "call": "Konverzace",
     "duration": "Trvání",
@@ -54,6 +61,11 @@ export default {
     "keep entries": "Uchovávejte záznamy",
     "chronological": "Chronologický",
     "show ids": "Zobrazit ID",
-    "show names": "Zobrazit názvy"
+    "show names": "Zobrazit názvy",
+    "loss": "Ztráta síťových dat",
+    "ber": "Bit Error Rate",
+    "rssi": "Kvalitu signálu",
+    "temp": "Temperatura",
+    "hum": "Vlhkost vzduchu"
   }
 }

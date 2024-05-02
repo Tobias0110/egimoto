@@ -19,7 +19,7 @@ const packetHistory= []
 let ts1_in_use = false;
 let ts2_in_use = false;
 // Remember last status for new users
-let lastStatus = {mode: 'IDLE', rssi: '-', text: '-', swr: '-', temp: '-', hum: '-'};
+let lastStatus = {mode: 'IDLE', rssi: '-', text: '', swr: '?', temp: '?', hum: '?'};
 
 function convert_to_s_value(rssi) {
   let diff;
@@ -99,12 +99,12 @@ function handleOpenCalls( packet ) {
     transmitPacket( packet );
   }
 
-  // Remove start packets from the open list if an incoming end packet matches the typ and create end packet
+  // Remove start packets from the open list if an end package is received exept it is DMR, then check the typ to match TS.
   // Gets called for all end packages
   if(packet.action === 'end') {
     for( let i= 0; i < openCalls.length; i++ ) {
       const startPacket= openCalls[i]
-      if( (startPacket.typ) === (packet.typ) ) {
+      if( (startPacket.typ === packet.typ) || !((packet.typ == "DMR TS1") || (packet.typ == "DMR TS2"))) {
         const stopPacket= {...startPacket}
         stopPacket.time= new Date().toISOString()
         stopPacket.action= 'end'
@@ -120,7 +120,7 @@ function handleOpenCalls( packet ) {
 }
 
 // Read the caller id names CSV and connect to mqtt in parallel
-const [callerIdNames, client, versionNumber]= await Promise.all([ readCallerIdNames(), mqttConnect(), readVersionNumber(currentDirectory) ])
+const [client, versionNumber]= await Promise.all([mqttConnect(), readVersionNumber(currentDirectory) ])
 
 const app = express()
 
@@ -342,10 +342,10 @@ client?.on('message', (topic, payload) => {
     // Mode
     else if(typeof mess.MMDVM != "undefined") {
         sPacket.mode = mess.MMDVM.mode.toUpperCase();
-        if(mess.MMDVM.mode == 'idle') {
+        //if(mess.MMDVM.mode == 'idle') {
           sPacket.rssi = '-';
-          sPacket.text = '-';
-        }
+          sPacket.text = '';
+        //}
         transmitStatus(sPacket);
     }
 

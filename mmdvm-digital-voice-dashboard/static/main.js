@@ -436,7 +436,7 @@ if( window.location.pathname === '/' ) {
   function consumeStatus( packet ) {
     document.getElementById("mode").innerHTML = packet.mode;
     document.getElementById("smeter").innerHTML = packet.rssi;
-    document.getElementById("text").innerHTML = packet.text;
+    if(document.getElementById("text").innerHTML != packet.text) document.getElementById("text").innerHTML = packet.text;
     document.getElementById("swr").innerHTML = packet.swr;
     document.getElementById("temp").innerHTML = packet.temp;
     document.getElementById("hum").innerHTML = packet.hum;
