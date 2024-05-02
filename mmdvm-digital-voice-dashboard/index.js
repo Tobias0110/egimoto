@@ -97,6 +97,11 @@ function handleOpenCalls( packet ) {
     openCalls.push( packet );
     // Nothing to close, just send a start package
     transmitPacket( packet );
+    // delete S-Meter and Talker Alias if new call starts
+    let status = {};
+    status.rssi = '-';
+    status.text = '';
+    transmitStatus(status);
   }
 
   // Remove start packets from the open list if an end package is received exept it is DMR, then check the typ to match TS.
